@@ -482,19 +482,18 @@ def sync(client, catalog, config, state):
         singer.write_state(state)
 
         # Sync stream based on type.
-        state, record_count = sync_paginated(client, state, stream)
-        # if stream["tap_stream_id"] == "activity_types":
-        #     state, record_count = sync_activity_types(client, state, stream)
-        # elif stream["tap_stream_id"] == "leads":
-        #     state, record_count = sync_leads(client, state, stream, config)
-        # elif stream["tap_stream_id"].startswith("activities_"):
-        #     state, record_count = sync_activities(client, state, stream, config)
-        # elif stream["tap_stream_id"] in ["campaigns", "lists"]:
-        #     state, record_count = sync_paginated(client, state, stream)
-        # elif stream["tap_stream_id"] == "programs":
-        #     state, record_count = sync_programs(client, state, stream)
-        # else:
-        #     raise Exception("Stream %s not implemented" % stream["tap_stream_id"])
+        if stream["tap_stream_id"] == "activity_types":
+            state, record_count = sync_activity_types(client, state, stream)
+        elif stream["tap_stream_id"] == "leads":
+            state, record_count = sync_leads(client, state, stream, config)
+        elif stream["tap_stream_id"].startswith("activities_"):
+            state, record_count = sync_activities(client, state, stream, config)
+        elif stream["tap_stream_id"] in ["campaigns", "lists"]:
+            state, record_count = sync_paginated(client, state, stream)
+        elif stream["tap_stream_id"] == "programs":
+            state, record_count = sync_programs(client, state, stream)
+        else:
+            raise Exception("Stream %s not implemented" % stream["tap_stream_id"])
 
         # Emit metric for record count.
         counter = singer.metrics.record_counter(stream["tap_stream_id"])
