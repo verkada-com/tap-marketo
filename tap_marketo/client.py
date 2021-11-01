@@ -68,8 +68,10 @@ def handle_short_term_rate_limit():
 def raise_for_rate_limit(data):
     err_codes = set(err["code"] for err in data.get("errors", []))
     if API_QUOTA_EXCEEDED in err_codes:
-        raise ApiQuotaExceeded(API_QUOTA_EXCEEDED_MESSAGE.format(data['errors']))
-    elif SHORT_TERM_QUOTA_EXCEEDED in err_codes:
+        singer.log_warning(API_QUOTA_EXCEEDED_MESSAGE.format(data['errors']))
+        # raise ApiQuotaExceeded(API_QUOTA_EXCEEDED_MESSAGE.format(data['errors']))
+    # el
+    if SHORT_TERM_QUOTA_EXCEEDED in err_codes:
         message = SHORT_TERM_QUOTA_EXCEEDED_MESSAGE.format(data['errors'])
         singer.log_warning(message)
         raise ShortTermQuotaExceeded(message)
