@@ -69,6 +69,7 @@ def raise_for_rate_limit(data):
     err_codes = set(err["code"] for err in data.get("errors", []))
     if API_QUOTA_EXCEEDED in err_codes:
         singer.log_warning(API_QUOTA_EXCEEDED_MESSAGE.format(data['errors']))
+        return
         # raise ApiQuotaExceeded(API_QUOTA_EXCEEDED_MESSAGE.format(data['errors']))
     # el
     if SHORT_TERM_QUOTA_EXCEEDED in err_codes:
@@ -101,9 +102,10 @@ class Client:
 
     @property
     def use_corona(self):
-        if getattr(self, "_use_corona", None) is None:
-            self._use_corona = self.test_corona()
-        return self._use_corona
+        return True
+        # if getattr(self, "_use_corona", None) is None:
+        #     self._use_corona = self.test_corona()
+        # return self._use_corona
 
     @property
     def headers(self):
