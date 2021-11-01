@@ -204,7 +204,13 @@ class Client:
 
             data = resp.json()
             raise_for_rate_limit(data)
-            if not data["success"]:
+
+            
+            err_codes = set(err["code"] for err in data.get("errors", []))
+            if API_QUOTA_EXCEEDED in err_codes:
+                singer.log_warning(API_QUOTA_EXCEEDED_MESSAGE.format(data['errors']))
+                return {}
+            elif not data["success"]:
                 err = ", ".join("{code}: {message}".format(**e) for e in data["errors"])
                 raise ApiException("Marketo API returned error(s): {}".format(err))
 
