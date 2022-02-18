@@ -31,6 +31,7 @@ setup(name='tap-marketo',
           'tap_marketo/schemas': [
               "activity_types.json",
               "campaigns.json",
+              "leads.json",
               "programs.json",
           ]
       },
