@@ -205,8 +205,7 @@ def discover_catalog(name, automatic_inclusion, **kwargs):
 def discover(client):
     singer.log_info("Starting discover")
     streams = []
-    # streams.append(discover_leads(client))
-    streams.append(discover_catalog("leads", LEAD_REQUIRED_FIELDS))
+    streams.append(discover_leads(client))
     streams.append(discover_catalog("activity_types", ACTIVITY_TYPES_AUTOMATIC_INCLUSION, unsupported=ACTIVITY_TYPES_UNSUPPORTED, stream_automatic_inclusion=True))
     streams.extend(discover_activities(client))
     streams.append(discover_catalog("campaigns", CAMPAIGNS_AUTOMATIC_INCLUSION))
