@@ -257,44 +257,44 @@ def flatten_activity(row, stream):
     return rtn
 
 
-def sync_leads(client, state, stream, config):
-    # http://developers.marketo.com/rest-api/bulk-extract/bulk-lead-extract/
-    replication_key = determine_replication_key(stream["tap_stream_id"])
+# def sync_leads(client, state, stream, config):
+#     # http://developers.marketo.com/rest-api/bulk-extract/bulk-lead-extract/
+#     replication_key = determine_replication_key(stream["tap_stream_id"])
 
-    singer.write_schema("leads", stream["schema"], stream["key_properties"], bookmark_properties=[replication_key])
-    initial_bookmark = pendulum.parse(bookmarks.get_bookmark(state, "leads", replication_key))
-    export_start = pendulum.parse(bookmarks.get_bookmark(state, "leads", replication_key))
-    if client.use_corona:
-        export_start = export_start.subtract(days=ATTRIBUTION_WINDOW_DAYS)
+#     singer.write_schema("leads", stream["schema"], stream["key_properties"], bookmark_properties=[replication_key])
+#     initial_bookmark = pendulum.parse(bookmarks.get_bookmark(state, "leads", replication_key))
+#     export_start = pendulum.parse(bookmarks.get_bookmark(state, "leads", replication_key))
+#     if client.use_corona:
+#         export_start = export_start.subtract(days=ATTRIBUTION_WINDOW_DAYS)
 
-    job_started = pendulum.utcnow()
-    record_count = 0
-    max_bookmark = initial_bookmark
-    while export_start < job_started:
-        export_id, export_end = get_or_create_export_for_leads(client, state, stream, export_start, config)
-        state = wait_for_export(client, state, stream, export_id)
-        for row in stream_rows(client, "leads", export_id):
-            time_extracted = utils.now()
+#     job_started = pendulum.utcnow()
+#     record_count = 0
+#     max_bookmark = initial_bookmark
+#     while export_start < job_started:
+#         export_id, export_end = get_or_create_export_for_leads(client, state, stream, export_start, config)
+#         state = wait_for_export(client, state, stream, export_id)
+#         for row in stream_rows(client, "leads", export_id):
+#             time_extracted = utils.now()
 
-            record = format_values(stream, row)
-            record_bookmark = pendulum.parse(record[replication_key])
+#             record = format_values(stream, row)
+#             record_bookmark = pendulum.parse(record[replication_key])
 
-            if client.use_corona:
-                max_bookmark = export_end
+#             if client.use_corona:
+#                 max_bookmark = export_end
 
-                singer.write_record("leads", record, time_extracted=time_extracted)
-                record_count += 1
-            elif record_bookmark >= initial_bookmark:
-                max_bookmark = max(max_bookmark, record_bookmark)
+#                 singer.write_record("leads", record, time_extracted=time_extracted)
+#                 record_count += 1
+#             elif record_bookmark >= initial_bookmark:
+#                 max_bookmark = max(max_bookmark, record_bookmark)
 
-                singer.write_record("leads", record, time_extracted=time_extracted)
-                record_count += 1
+#                 singer.write_record("leads", record, time_extracted=time_extracted)
+#                 record_count += 1
 
-        # Now that one of the exports is finished, update the bookmark
-        state = update_state_with_export_info(state, stream, bookmark=max_bookmark.isoformat())
-        export_start = export_end
+#         # Now that one of the exports is finished, update the bookmark
+#         state = update_state_with_export_info(state, stream, bookmark=max_bookmark.isoformat())
+#         export_start = export_end
 
-    return state, record_count
+#     return state, record_count
 
 
 def sync_activities(client, state, stream, config):
@@ -374,6 +374,61 @@ def sync_programs(client, state, stream):
     singer.write_state(state)
     return state, record_count
 
+
+def sync_leads(client, state, stream):
+    # http://developers.marketo.com/rest-api/endpoint-reference/lead-database-endpoint-reference/#!/Campaigns/getCampaignsUsingGET
+    # http://developers.marketo.com/rest-api/endpoint-reference/lead-database-endpoint-reference/#!/Static_Lists/getListsUsingGET
+    #
+    # Campaigns and Static Lists are paginated with a max return of 300
+    # items per page. There are no filters that can be used to only
+    # return updated records.
+    replication_key = determine_replication_key(stream['tap_stream_id'])
+
+    singer.write_schema(stream["tap_stream_id"], stream["schema"], stream["key_properties"], bookmark_properties=[replication_key])
+    start_date = bookmarks.get_bookmark(state, stream["tap_stream_id"], replication_key)
+    params = {"batchSize": 300}
+    endpoint = "rest/v1/list/13702/leads.json".format(stream["tap_stream_id"])
+
+    # Paginated requests use paging tokens for retrieving the next page
+    # of results. These tokens are stored in the state for resuming
+    # syncs. If a paging token exists in state, use it.
+    next_page_token = bookmarks.get_bookmark(state, stream["tap_stream_id"], "next_page_token")
+    if next_page_token:
+        params["nextPageToken"] = next_page_token
+
+    # Keep querying pages of data until no next page token.
+    record_count = 0
+    job_started = pendulum.utcnow().isoformat()
+    while True:
+        data = client.request("GET", endpoint, endpoint_name=stream["tap_stream_id"], params=params)
+
+        time_extracted = utils.now()
+
+        # Each row just needs the values formatted. If the record is
+        # newer than the original start date, stream the record. Finally,
+        # update the bookmark if newer than the existing bookmark.
+        for row in data["result"]:
+            record = format_values(stream, row)
+            if record[replication_key] >= start_date:
+                record_count += 1
+
+                singer.write_record(stream["tap_stream_id"], record, time_extracted=time_extracted)
+
+        # No next page, results are exhausted.
+        if "nextPageToken" not in data:
+            break
+
+        # Store the next page token in state and continue.
+        params["nextPageToken"] = data["nextPageToken"]
+        state = bookmarks.write_bookmark(state, stream["tap_stream_id"], "next_page_token", data["nextPageToken"])
+        singer.write_state(state)
+
+    # Once all results are exhausted, unset the next page token bookmark
+    # so the subsequent sync starts from the beginning.
+    state = bookmarks.write_bookmark(state, stream["tap_stream_id"], "next_page_token", None)
+    state = bookmarks.write_bookmark(state, stream["tap_stream_id"], replication_key, job_started)
+    singer.write_state(state)
+    return state, record_count
 
 def sync_paginated(client, state, stream):
     # http://developers.marketo.com/rest-api/endpoint-reference/lead-database-endpoint-reference/#!/Campaigns/getCampaignsUsingGET
@@ -485,7 +540,7 @@ def sync(client, catalog, config, state):
         if stream["tap_stream_id"] == "activity_types":
             state, record_count = sync_activity_types(client, state, stream)
         elif stream["tap_stream_id"] == "leads":
-            state, record_count = sync_leads(client, state, stream, config)
+            state, record_count = sync_paginated(client, state, stream)
         elif stream["tap_stream_id"].startswith("activities_"):
             state, record_count = sync_activities(client, state, stream, config)
         elif stream["tap_stream_id"] in ["campaigns", "lists"]:
