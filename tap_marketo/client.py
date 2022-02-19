@@ -287,6 +287,17 @@ class Client:
         endpoint_name = "{}_poll".format(stream_type)
         return self.request("GET", endpoint, endpoint_name=endpoint_name)
 
+    def get_paging_token(self, start_time):
+        endpoint = "rest/v1/activities/pagingtoken.json"
+        result = self.request(
+            "GET", endpoint,
+            params={"access_token": self.access_token, "sinceDatetime": start_time})
+        if "result" in result:
+            singer.log_info(f"Result is {result}")
+            return result['nextPageToken']
+        else:
+            return dict()
+
     def poll_export(self, stream_type, export_id):
         # http://developers.marketo.com/rest-api/bulk-extract/#polling_job_status
         return self.get_export_status(stream_type, export_id)["result"][0]["status"]

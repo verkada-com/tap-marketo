@@ -1,5 +1,6 @@
 import csv
 import json
+from pydoc import cli
 import pendulum
 import tempfile
 
@@ -387,7 +388,62 @@ def sync_leads(client, state, stream):
     singer.write_schema(stream["tap_stream_id"], stream["schema"], stream["key_properties"], bookmark_properties=[replication_key])
     start_date = bookmarks.get_bookmark(state, stream["tap_stream_id"], replication_key)
     params = {"batchSize": 300}
-    endpoint = "rest/v1/list/13702/leads.json".format(stream["tap_stream_id"])
+    endpoint = "rest/v1/list/13702/leads.json"
+    
+    # Paginated requests use paging tokens for retrieving the next page
+    # of results. These tokens are stored in the state for resuming
+    # syncs. If a paging token exists in state, use it.
+    next_page_token = bookmarks.get_bookmark(state, stream["tap_stream_id"], "next_page_token")
+    if next_page_token:
+        params["nextPageToken"] = next_page_token
+
+    # Keep querying pages of data until no next page token.
+    record_count = 0
+    job_started = pendulum.utcnow().isoformat()
+    while True:
+        data = client.request("GET", endpoint, endpoint_name=stream["tap_stream_id"], params=params)
+
+        time_extracted = utils.now()
+
+        # Each row just needs the values formatted. If the record is
+        # newer than the original start date, stream the record. Finally,
+        # update the bookmark if newer than the existing bookmark.
+        for row in data["result"]:
+            record = format_values(stream, row)
+            if record[replication_key] >= start_date:
+                record_count += 1
+
+                singer.write_record(stream["tap_stream_id"], record, time_extracted=time_extracted)
+
+        # No next page, results are exhausted.
+        if "nextPageToken" not in data:
+            break
+
+        # Store the next page token in state and continue.
+        params["nextPageToken"] = data["nextPageToken"]
+        state = bookmarks.write_bookmark(state, stream["tap_stream_id"], "next_page_token", data["nextPageToken"])
+        singer.write_state(state)
+
+    # Once all results are exhausted, unset the next page token bookmark
+    # so the subsequent sync starts from the beginning.
+    state = bookmarks.write_bookmark(state, stream["tap_stream_id"], "next_page_token", None)
+    state = bookmarks.write_bookmark(state, stream["tap_stream_id"], replication_key, job_started)
+    singer.write_state(state)
+    return state, record_count
+
+def sync_activities_paginated(client, state, stream, activity_id):
+    # http://developers.marketo.com/rest-api/endpoint-reference/lead-database-endpoint-reference/#!/Campaigns/getCampaignsUsingGET
+    # http://developers.marketo.com/rest-api/endpoint-reference/lead-database-endpoint-reference/#!/Static_Lists/getListsUsingGET
+    #
+    # Campaigns and Static Lists are paginated with a max return of 300
+    # items per page. There are no filters that can be used to only
+    # return updated records.
+    replication_key = determine_replication_key(stream['tap_stream_id'])
+
+    singer.write_schema(stream["tap_stream_id"], stream["schema"], stream["key_properties"], bookmark_properties=[replication_key])
+    start_date = bookmarks.get_bookmark(state, stream["tap_stream_id"], replication_key)
+    params = {"batchSize": 300, "activityTypeIds": activity_id}
+    endpoint = "rest/v1/activities.json"
 
     # Paginated requests use paging tokens for retrieving the next page
     # of results. These tokens are stored in the state for resuming
@@ -395,6 +451,8 @@ def sync_leads(client, state, stream):
     next_page_token = bookmarks.get_bookmark(state, stream["tap_stream_id"], "next_page_token")
     if next_page_token:
         params["nextPageToken"] = next_page_token
+    else:
+        params["nextPageToken"] =  client.get_paging_token(start_date)  
 
     # Keep querying pages of data until no next page token.
     record_count = 0
@@ -541,8 +599,10 @@ def sync(client, catalog, config, state):
             state, record_count = sync_activity_types(client, state, stream)
         elif stream["tap_stream_id"] == "leads":
             state, record_count = sync_leads(client, state, stream)
-        elif stream["tap_stream_id"].startswith("activities_"):
-            state, record_count = sync_activities(client, state, stream, config)
+        elif stream["tap_stream_id"] == "activities_send_email":
+            state, record_count = sync_activities_paginated(client, state, stream, 6)
+        # elif stream["tap_stream_id"].startswith("activities_"):
+        #     state, record_count = sync_activities(client, state, stream, config)
         elif stream["tap_stream_id"] in ["campaigns", "lists"]:
             state, record_count = sync_paginated(client, state, stream)
         elif stream["tap_stream_id"] == "programs":
