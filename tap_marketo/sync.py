@@ -249,11 +249,12 @@ def flatten_activity(row, stream):
         rtn['primary_attribute_value_id'] = row['primaryAttributeValueId']
 
     # Now flatten the attrs json to it's selected columns
-    if "attributes" in row:
-        attrs = json.loads(row["attributes"])
-        for key, value in attrs.items():
-            key = key.lower().replace(" ", "_")
-            rtn[key] = value
+    #TODO : figure out how to get attributes...
+    # if "attributes" in row:
+    #     attrs = json.loads(row["attributes"])
+    #     for key, value in attrs.items():
+    #         key = key.lower().replace(" ", "_")
+    #         rtn[key] = value
 
     return rtn
 
