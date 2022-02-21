@@ -432,12 +432,11 @@ def sync_leads(client, state, stream):
     return state, record_count
 
 def sync_activities_paginated(client, state, stream, activity_id):
-    # http://developers.marketo.com/rest-api/endpoint-reference/lead-database-endpoint-reference/#!/Campaigns/getCampaignsUsingGET
+    # https://developers.marketo.com/rest-api/endpoint-reference/lead-database-endpoint-reference/#!/Activities/getLeadActivitiesUsingGET
     # http://developers.marketo.com/rest-api/endpoint-reference/lead-database-endpoint-reference/#!/Static_Lists/getListsUsingGET
     #
-    # Campaigns and Static Lists are paginated with a max return of 300
-    # items per page. There are no filters that can be used to only
-    # return updated records.
+    # Activity Data are paginated with a max return of 300
+    # items per page.
     replication_key = determine_replication_key(stream['tap_stream_id'])
 
     singer.write_schema(stream["tap_stream_id"], stream["schema"], stream["key_properties"], bookmark_properties=[replication_key])

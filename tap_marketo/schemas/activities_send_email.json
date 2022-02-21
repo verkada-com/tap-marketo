@@ -15,30 +15,20 @@
       "activityTypeId": {
         "type": "integer"
       },
-      "primaryAttribute": {
-        "type": ["object", "null"],
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "dataType": {
-            "type": "string"
-          }
-        }
+      "campaignId": {
+        "type": ["integer", "null"]
       },
-      "attributes": {
-        "type": ["array", "null"],
-        "items": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string"
-            },
-            "dataType": {
-              "type": "string"
-            }
-          }
-        }
+      "leadId": {
+        "type": ["integer", "null"]
+      },
+      "marketoGUID": {
+        "type": ["string", "null"]
+      },
+      "primaryAttributeValue": {
+        "type": ["string", "null"]
+      },
+      "primaryAttributeValueId": {
+        "type": ["integer", "null"]
       }
     }
   }
