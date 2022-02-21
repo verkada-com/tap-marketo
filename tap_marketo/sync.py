@@ -473,14 +473,13 @@ def sync_activities_paginated(client, state, stream, activity_id):
 
                     singer.write_record(stream["tap_stream_id"], record, time_extracted=time_extracted)
 
-            # No next page, results are exhausted.
-            if "nextPageToken" not in data:
-                break
-
             # Store the next page token in state and continue.
             params["nextPageToken"] = data["nextPageToken"]
             state = bookmarks.write_bookmark(state, stream["tap_stream_id"], "next_page_token", data["nextPageToken"])
             singer.write_state(state)
+        else: 
+            # No next page, results are exhausted.
+            break
 
     # Once all results are exhausted, unset the next page token bookmark
     # so the subsequent sync starts from the beginning.
