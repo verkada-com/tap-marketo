@@ -293,8 +293,6 @@ class Client:
             "GET", endpoint,
             params={"access_token": self.access_token, "sinceDatetime": start_time})
         
-        singer.log_info(f"Result is {result}")
-
         if result != None:
             return result['nextPageToken']
         else:
