@@ -295,7 +295,7 @@ class Client:
         
         singer.log_info(f"Result is {result}")
 
-        if "result" in result:
+        if result != None:
             return result['nextPageToken']
         else:
             return dict()
