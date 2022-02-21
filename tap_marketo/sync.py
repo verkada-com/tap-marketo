@@ -459,27 +459,28 @@ def sync_activities_paginated(client, state, stream, activity_id):
     job_started = pendulum.utcnow().isoformat()
     while True:
         data = client.request("GET", endpoint, endpoint_name=stream["tap_stream_id"], params=params)
-        singer.log_info(f"Activity Dat is :{data}")
+        singer.log_info(f"Activity Data is :{data}")
         time_extracted = utils.now()
 
         # Each row just needs the values formatted. If the record is
         # newer than the original start date, stream the record. Finally,
         # update the bookmark if newer than the existing bookmark.
-        for row in data["result"]:
-            record = format_values(stream, row)
-            if record[replication_key] >= start_date:
-                record_count += 1
+        if data.get("result") != None:
+            for row in data["result"]:
+                record = format_values(stream, row)
+                if record[replication_key] >= start_date:
+                    record_count += 1
 
-                singer.write_record(stream["tap_stream_id"], record, time_extracted=time_extracted)
+                    singer.write_record(stream["tap_stream_id"], record, time_extracted=time_extracted)
 
-        # No next page, results are exhausted.
-        if "nextPageToken" not in data:
-            break
+            # No next page, results are exhausted.
+            if "nextPageToken" not in data:
+                break
 
-        # Store the next page token in state and continue.
-        params["nextPageToken"] = data["nextPageToken"]
-        state = bookmarks.write_bookmark(state, stream["tap_stream_id"], "next_page_token", data["nextPageToken"])
-        singer.write_state(state)
+            # Store the next page token in state and continue.
+            params["nextPageToken"] = data["nextPageToken"]
+            state = bookmarks.write_bookmark(state, stream["tap_stream_id"], "next_page_token", data["nextPageToken"])
+            singer.write_state(state)
 
     # Once all results are exhausted, unset the next page token bookmark
     # so the subsequent sync starts from the beginning.
