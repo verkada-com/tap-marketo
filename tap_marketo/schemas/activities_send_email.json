@@ -1,6 +1,6 @@
 {
-  "tap_stream_id": "activities_send_email",
-  "stream": "activities_send_email",
+  "tap_stream_id": "pleb",
+  "stream": "pleb",
   "key_properties": ["id"],
   "schema": {
     "type": "object",

@@ -466,6 +466,7 @@ def sync_activities_paginated(client, state, stream, activity_id):
         # update the bookmark if newer than the existing bookmark.
         if data.get("result") != None:
             for row in data["result"]:
+                row = flatten_activity(row, stream)
                 record = format_values(stream, row)
                 if record[replication_key] >= start_date:
                     record_count += 1
