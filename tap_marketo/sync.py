@@ -601,6 +601,9 @@ def sync(client, catalog, config, state):
             state, record_count = sync_leads(client, state, stream)
         elif stream["tap_stream_id"] == "activities_send_email":
             state, record_count = sync_activities_paginated(client, state, stream, 6)
+        elif stream["tap_stream_id"] == "activities_fill_out_form":
+            state, record_count = sync_activities_paginated(client, state, stream, 2)
+            
         # elif stream["tap_stream_id"].startswith("activities_"):
         #     state, record_count = sync_activities(client, state, stream, config)
         elif stream["tap_stream_id"] in ["campaigns", "lists"]:
