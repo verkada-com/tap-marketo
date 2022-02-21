@@ -459,7 +459,7 @@ def sync_activities_paginated(client, state, stream, activity_id):
     job_started = pendulum.utcnow().isoformat()
     while True:
         data = client.request("GET", endpoint, endpoint_name=stream["tap_stream_id"], params=params)
-
+        singer.log_info(f"Activity Dat is :{data}")
         time_extracted = utils.now()
 
         # Each row just needs the values formatted. If the record is
@@ -514,7 +514,6 @@ def sync_paginated(client, state, stream):
     job_started = pendulum.utcnow().isoformat()
     while True:
         data = client.request("GET", endpoint, endpoint_name=stream["tap_stream_id"], params=params)
-        singer.log_info(f"Activity Dat is :{data}")
         time_extracted = utils.now()
 
         # Each row just needs the values formatted. If the record is
