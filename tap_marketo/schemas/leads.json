@@ -26,7 +26,25 @@
       "lastName": {
         "type": ["string", "null"]
       },
+      "sfdcContactId": {
+        "type": ["string", "null"]
+      },
+      "sfdcLeadId": {
+        "type": ["string", "null"]
+      },
+      "mktoName": {
+        "type": ["string", "null"]
+      },
       "phone": {
+        "type": ["string", "null"]
+      },
+      "mobilePhone": {
+        "type": ["string", "null"]
+      },
+      "postalCode": {
+        "type": ["string", "null"]
+      },
+      "address": {
         "type": ["string", "null"]
       }
     }
