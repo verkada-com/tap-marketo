@@ -25,6 +25,9 @@
       },
       "lastName": {
         "type": ["string", "null"]
+      },
+      "sfdcContactId": {
+        "type": ["string", "null"]
       }
     }
   }
