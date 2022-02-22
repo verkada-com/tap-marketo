@@ -377,19 +377,20 @@ def sync_programs(client, state, stream):
     return state, record_count
 
 
-def sync_leads(client, state, stream):
-    # http://developers.marketo.com/rest-api/endpoint-reference/lead-database-endpoint-reference/#!/Campaigns/getCampaignsUsingGET
-    # http://developers.marketo.com/rest-api/endpoint-reference/lead-database-endpoint-reference/#!/Static_Lists/getListsUsingGET
+def sync_leads_paginated(client, state, stream):
+    # http://developers.marketo.com/documentation/rest/get-multiple-leads-by-list-id/
     #
-    # Campaigns and Static Lists are paginated with a max return of 300
-    # items per page. There are no filters that can be used to only
-    # return updated records.
+    # This is a supplementary sync for Lead. We're Marketo Static List 13702 to give us newly updated leads
+    # Leads are paginated with a max return of 300 items per page 
     replication_key = determine_replication_key(stream['tap_stream_id'])
 
     singer.write_schema(stream["tap_stream_id"], stream["schema"], stream["key_properties"], bookmark_properties=[replication_key])
     start_date = bookmarks.get_bookmark(state, stream["tap_stream_id"], replication_key)
     params = {"batchSize": 300}
-    endpoint = "rest/v1/list/13702/leads.json"
+    
+    # https://engage-ab.marketo.com/?munchkinId=739-BIK-855#/classic/ST13702A1LA1
+    static_supplement_lead_list = 13702
+    endpoint = f"rest/v1/list/{static_supplement_lead_list}/leads.json"
     
     # Paginated requests use paging tokens for retrieving the next page
     # of results. These tokens are stored in the state for resuming
@@ -403,6 +404,7 @@ def sync_leads(client, state, stream):
     job_started = pendulum.utcnow().isoformat()
     while True:
         data = client.request("GET", endpoint, endpoint_name=stream["tap_stream_id"], params=params)
+        singer.log_info(f"Leads Data is :{data}")
 
         time_extracted = utils.now()
 
@@ -459,7 +461,6 @@ def sync_activities_paginated(client, state, stream, activity_id):
     job_started = pendulum.utcnow().isoformat()
     while True:
         data = client.request("GET", endpoint, endpoint_name=stream["tap_stream_id"], params=params)
-        singer.log_info(f"Activity Data is :{data}")
         time_extracted = utils.now()
 
         # Each row just needs the values formatted. If the record is
@@ -598,7 +599,7 @@ def sync(client, catalog, config, state):
         if stream["tap_stream_id"] == "activity_types":
             state, record_count = sync_activity_types(client, state, stream)
         elif stream["tap_stream_id"] == "leads":
-            state, record_count = sync_leads(client, state, stream)
+            state, record_count = sync_leads_paginated(client, state, stream)
         elif stream["tap_stream_id"] == "activities_send_email":
             state, record_count = sync_activities_paginated(client, state, stream, 6)
         elif stream["tap_stream_id"] == "activities_fill_out_form":
