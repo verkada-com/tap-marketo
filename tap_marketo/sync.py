@@ -383,7 +383,7 @@ def sync_leads_paginated(client, state, stream):
     # This is a supplementary sync for Lead. We're Marketo Static List 13702 to give us newly updated leads
     # Leads are paginated with a max return of 300 items per page 
     replication_key = determine_replication_key(stream['tap_stream_id'])
-    fields = list(stream["schema"]["properties"].key())
+    fields = list(stream["schema"]["properties"].keys())
     # singer.log_info(f"Lead fields is :{fields.keys()}")
 
     singer.write_schema(stream["tap_stream_id"], stream["schema"], stream["key_properties"], bookmark_properties=[replication_key])
