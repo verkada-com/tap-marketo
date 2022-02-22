@@ -388,7 +388,7 @@ def sync_leads_paginated(client, state, stream):
 
     singer.write_schema(stream["tap_stream_id"], stream["schema"], stream["key_properties"], bookmark_properties=[replication_key])
     start_date = bookmarks.get_bookmark(state, stream["tap_stream_id"], replication_key)
-    params = {"batchSize": 300, "fields": ",".join(fields)}
+    params = {"batchSize": 300, "fields": fields}
     
     # https://engage-ab.marketo.com/?munchkinId=739-BIK-855#/classic/ST13702A1LA1
     static_supplement_lead_list = 13702
