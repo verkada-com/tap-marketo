@@ -250,11 +250,12 @@ def flatten_activity(row, stream):
 
     # Now flatten the attrs json to it's selected columns
     #TODO : figure out how to get attributes...
-    # if "attributes" in row:
-    #     attrs = json.loads(row["attributes"])
-    #     for key, value in attrs.items():
-    #         key = key.lower().replace(" ", "_")
-    #         rtn[key] = value
+    if "attributes" in row:
+        singer.log_info(f"Activity Row is :{row}")
+        # attrs = json.loads(row["attributes"])
+        # for key, value in attrs.items():
+        #     key = key.lower().replace(" ", "_")
+        #     rtn[key] = value
 
     return rtn
 
@@ -384,7 +385,6 @@ def sync_leads_paginated(client, state, stream):
     # Leads are paginated with a max return of 300 items per page 
     replication_key = determine_replication_key(stream['tap_stream_id'])
     fields = ",".join(list(stream["schema"]["properties"].keys()))
-    singer.log_info(f"Lead fields is :{fields}")
 
     singer.write_schema(stream["tap_stream_id"], stream["schema"], stream["key_properties"], bookmark_properties=[replication_key])
     start_date = bookmarks.get_bookmark(state, stream["tap_stream_id"], replication_key)
