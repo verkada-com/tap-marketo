@@ -97,7 +97,6 @@ def get_activity_type_stream(activity):
 
         primary = clean_string(activity["primaryAttribute"]["name"])
         mdata = metadata.write(mdata, (), 'marketo.primary-attribute-name', primary)
-        singer.log(f"Primary Field is {primary}")
 
     if "campaignId" in activity:
         properties["campaignId"] = {"type": ["null", "integer"]}
