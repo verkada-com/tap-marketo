@@ -258,7 +258,6 @@ def flatten_activity(row, stream):
     if "attributes" in row:
         attrs = row["attributes"]
         for att_row in attrs:
-            singer.log_info(f"Activity Row is :{att_row}")
             key = att_row["name"].lower().replace(" ", "_")
             value = att_row["value"]
             rtn[key] = value
@@ -478,9 +477,6 @@ def sync_activities_paginated(client, state, stream, activity_id):
         if data.get("result") != None:
             for row in data["result"]:
                 row = flatten_activity(row, stream)
-                singer.log_info(f"Final Row is :{row}")
-                schema = stream["schema"]
-                singer.log_info(f"Schema is:{schema}")
                 record = format_values(stream, row)
                 if record[replication_key] >= start_date:
                     record_count += 1
