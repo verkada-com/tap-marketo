@@ -431,7 +431,8 @@ def sync_leads_paginated(client, state, stream):
 
     # Once all results are exhausted, unset the next page token bookmark
     # so the subsequent sync starts from the beginning.
-    state = bookmarks.write_bookmark(state, stream["tap_stream_id"], "next_page_token", None)
+    #TODO - Uncomment this after debugging why we can't iterate through entire list...
+    # state = bookmarks.write_bookmark(state, stream["tap_stream_id"], "next_page_token", None)
     state = bookmarks.write_bookmark(state, stream["tap_stream_id"], replication_key, job_started)
     singer.write_state(state)
     return state, record_count
