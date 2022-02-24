@@ -251,9 +251,9 @@ def flatten_activity(row, stream):
     # Now flatten the attrs json to it's selected columns
     #TODO : figure out how to get attributes...
     if "attributes" in row:
-        singer.log_info(f"Activity Row is :{row}")
         attrs = row["attributes"]
         for att_row in attrs:
+            singer.log_info(f"Activity Row is :{att_row}")
             key = att_row["name"].lower().replace(" ", "_")
             value = att_row["value"]
             rtn[key] = value
@@ -477,6 +477,7 @@ def sync_activities_paginated(client, state, stream, activity_id):
         if data.get("result") != None:
             for row in data["result"]:
                 row = flatten_activity(row, stream)
+                singer.log_info(f"Final Row is :{row}")
                 record = format_values(stream, row)
                 if record[replication_key] >= start_date:
                     record_count += 1

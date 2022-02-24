@@ -79,7 +79,7 @@ def get_activity_type_stream(activity):
         "marketoGUID": {"type": ["null", "string"]},
         "leadId": {"type": ["null", "integer"]},
         "activityDate": {"type": ["null", "string"], "format": "date-time"},
-        "activityTypeId": {"type": ["null", "integer"]}
+        "activityTypeId": {"type": ["null", "integer"]},
     }
 
     for prop in properties:
@@ -98,6 +98,13 @@ def get_activity_type_stream(activity):
         primary = clean_string(activity["primaryAttribute"]["name"])
         mdata = metadata.write(mdata, (), 'marketo.primary-attribute-name', primary)
 
+    if "campaignId" in activity:
+        properties["campaignId"] = {"type": ["null", "integer"]}
+
+        mdata = metadata.write(mdata, ('properties', "campaignId"), 'inclusion', 'automatic')
+
+        primary = activity["campaignId"]
+        mdata = metadata.write(mdata, (), 'marketo.campaignId', primary)
 
     if "attributes" in activity:
         for attr in activity["attributes"]:
