@@ -247,6 +247,9 @@ def flatten_activity(row, stream):
         rtn['primary_attribute_name'] = pan_field
         rtn['primary_attribute_value'] = row['primaryAttributeValue']
         rtn['primary_attribute_value_id'] = row['primaryAttributeValueId']
+        
+
+    if row.get('campaignId') != None:
         rtn['campaignId'] = row['campaignId']
         
 
@@ -259,10 +262,6 @@ def flatten_activity(row, stream):
             key = att_row["name"].lower().replace(" ", "_")
             value = att_row["value"]
             rtn[key] = value
-        # attrs = json.loads(row["attributes"])
-        # for key, value in attrs.items():
-        #     key = key.lower().replace(" ", "_")
-        #     rtn[key] = value
 
     return rtn
 
