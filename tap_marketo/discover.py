@@ -85,8 +85,6 @@ def get_activity_type_stream(activity):
     for prop in properties:
         mdata = metadata.write(mdata, ('properties', prop), 'inclusion', 'automatic')
 
-    singer.log(f"Discover activity is {activity}")
-
     if "primaryAttribute" in activity:
         properties["primary_attribute_value"] = {"type": ["null", "string"]}
         properties["primary_attribute_name"] = {"type": ["null", "string"]}
@@ -99,6 +97,7 @@ def get_activity_type_stream(activity):
 
         primary = clean_string(activity["primaryAttribute"]["name"])
         mdata = metadata.write(mdata, (), 'marketo.primary-attribute-name', primary)
+        singer.log(f"Primary Field is {primary}")
 
     if "campaignId" in activity:
         properties["campaignId"] = {"type": ["null", "integer"]}
