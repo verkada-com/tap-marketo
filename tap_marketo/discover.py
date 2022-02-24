@@ -85,6 +85,8 @@ def get_activity_type_stream(activity):
     for prop in properties:
         mdata = metadata.write(mdata, ('properties', prop), 'inclusion', 'automatic')
 
+    singer.log(f"Discover activity is {activity}")
+
     if "primaryAttribute" in activity:
         properties["primary_attribute_value"] = {"type": ["null", "string"]}
         properties["primary_attribute_name"] = {"type": ["null", "string"]}
