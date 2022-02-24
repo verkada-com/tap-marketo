@@ -247,6 +247,8 @@ def flatten_activity(row, stream):
         rtn['primary_attribute_name'] = pan_field
         rtn['primary_attribute_value'] = row['primaryAttributeValue']
         rtn['primary_attribute_value_id'] = row['primaryAttributeValueId']
+        rtn['campaignId'] = row['campaignId']
+        
 
     # Now flatten the attrs json to it's selected columns
     #TODO : figure out how to get attributes...
@@ -449,7 +451,8 @@ def sync_activities_paginated(client, state, stream, activity_id):
     # Activity Data are paginated with a max return of 300
     # items per page.
     replication_key = determine_replication_key(stream['tap_stream_id'])
-
+    schema = stream["key_properties"]
+    singer.log_info(f"Schema is:{schema}")
     singer.write_schema(stream["tap_stream_id"], stream["schema"], stream["key_properties"], bookmark_properties=[replication_key])
     start_date = bookmarks.get_bookmark(state, stream["tap_stream_id"], replication_key)
     params = {"batchSize": 300, "activityTypeIds": activity_id}

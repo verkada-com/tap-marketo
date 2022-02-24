@@ -105,6 +105,7 @@ def get_activity_type_stream(activity):
 
         primary = activity["campaignId"]
         mdata = metadata.write(mdata, (), 'marketo.campaignId', primary)
+        singer.log(f"Field is {primary}")
 
     if "attributes" in activity:
         for attr in activity["attributes"]:
