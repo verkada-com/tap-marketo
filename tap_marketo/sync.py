@@ -251,7 +251,12 @@ def flatten_activity(row, stream):
     # Now flatten the attrs json to it's selected columns
     #TODO : figure out how to get attributes...
     if "attributes" in row:
-        singer.log_info(f"Activity Row is :{row}")
+        # singer.log_info(f"Activity Row is :{row}")
+        attrs = row["attributes"]
+        for att_row in attrs:
+            key = att_row["name"].lower().replace(" ", "_")
+            value = att_row["value"]
+            rtn[key] = value
         # attrs = json.loads(row["attributes"])
         # for key, value in attrs.items():
         #     key = key.lower().replace(" ", "_")
