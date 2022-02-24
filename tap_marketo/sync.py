@@ -480,7 +480,7 @@ def sync_activities_paginated(client, state, stream, activity_id):
             for row in data["result"]:
                 row = flatten_activity(row, stream)
                 singer.log_info(f"Final Row is :{row}")
-                schema = stream["key_properties"]
+                schema = stream["schema"]
                 singer.log_info(f"Schema is:{schema}")
                 record = format_values(stream, row)
                 if record[replication_key] >= start_date:
