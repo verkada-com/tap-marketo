@@ -47,9 +47,6 @@
       "address": {
         "type": ["string", "null"]
       },
-      "fullName": {
-        "type": ["string", "null"]
-      },
       "company": {
         "type": ["string", "null"]
       },
