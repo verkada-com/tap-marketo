@@ -46,6 +46,24 @@
       },
       "address": {
         "type": ["string", "null"]
+      },
+      "fullName": {
+        "type": ["string", "null"]
+      },
+      "company": {
+        "type": ["string", "null"]
+      },
+      "city": {
+        "type": ["string", "null"]
+      },
+      "state": {
+        "type": ["string", "null"]
+      },
+      "country": {
+        "type": ["string", "null"]
+      },
+      "desiredGift": {
+        "type": ["string", "null"]
       }
     }
   }
