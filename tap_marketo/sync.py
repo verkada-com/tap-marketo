@@ -451,7 +451,7 @@ def sync_activities_paginated(client, state, stream, activity_id):
     
     singer.write_schema(stream["tap_stream_id"], stream["schema"], stream["key_properties"], bookmark_properties=[replication_key])
     start_date = bookmarks.get_bookmark(state, stream["tap_stream_id"], replication_key)
-    params = {"batchSize": 300, "activityTypeIds": activity_id}
+    params = {"batchSize": 250, "activityTypeIds": activity_id}
     endpoint = "rest/v1/activities.json"
 
     # Paginated requests use paging tokens for retrieving the next page
