@@ -613,6 +613,10 @@ def sync(client, catalog, config, state):
             state, record_count = sync_activities_paginated(client, state, stream, 2)
         elif stream["tap_stream_id"] == "activities_email_bounced":
             state, record_count = sync_activities_paginated(client, state, stream, 8)
+        elif stream["tap_stream_id"] == "activities_visit_webpage":
+            state, record_count = sync_activities_paginated(client, state, stream, 1)
+        elif stream["tap_stream_id"] == "activities_fill_out_facebook_lead_ads_form":
+            state, record_count = sync_activities_paginated(client, state, stream, 131)
             
         # elif stream["tap_stream_id"].startswith("activities_"):
         #     state, record_count = sync_activities(client, state, stream, config)
