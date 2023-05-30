@@ -245,8 +245,8 @@ def flatten_activity(row, stream):
     pan_field = metadata.get(mdata, (), 'marketo.primary-attribute-name')
     if pan_field:
         rtn['primary_attribute_name'] = pan_field
-        rtn['primary_attribute_value'] = row['primaryAttributeValue']
-        rtn['primary_attribute_value_id'] = row['primaryAttributeValueId']
+        rtn['primary_attribute_value'] = row.get('primaryAttributeValue', '')
+        rtn['primary_attribute_value_id'] = row.get('primaryAttributeValueId', '')
         
 
     if row.get('campaignId') != None:
