@@ -619,6 +619,8 @@ def sync(client, catalog, config, state):
             state, record_count = sync_activities_paginated(client, state, stream, 131)
         elif stream["tap_stream_id"] == "activities_delete_lead":
             state, record_count = sync_activities_paginated(client, state, stream, 37)
+        elif stream["tap_stream_id"] == "activities_merge_leads":
+            state, record_count = sync_activities_paginated(client, state, stream, 32)
             
         # elif stream["tap_stream_id"].startswith("activities_"):
         #     state, record_count = sync_activities(client, state, stream, config)
